@@ -1,21 +1,35 @@
-# Focus Mode Workflows for Warp
+# Focus Mode v2 Workflows for Warp
+# Deep Work System - No Gamification
 
 ---
-name: Start Focus Session
-description: Begin a 20-minute focus session with intention setting
-command: python3 ~/.warp/focus/focus.py start 20 "{{task}}"
+name: Deep Work Session (90 min)
+description: Recommended deep work block for complex tasks
+command: python3 ~/.warp/focus/focus.py start 90 "{{task}}"
 arguments:
   - name: task
-    description: What are you working on?
+    description: What essential task are you working on?
     default_value: "Deep work"
 tags:
   - focus
+  - deep-work
   - productivity
 
 ---
-name: Quick Focus 15
-description: Short 15-minute focus burst
-command: python3 ~/.warp/focus/focus.py start 15 "{{task}}"
+name: Standard Focus (60 min)
+description: Standard focus block for regular work
+command: python3 ~/.warp/focus/focus.py start 60 "{{task}}"
+arguments:
+  - name: task
+    description: What are you working on?
+    default_value: "Focus work"
+tags:
+  - focus
+  - standard
+
+---
+name: Light Focus (30 min)
+description: Shorter session for lighter tasks
+command: python3 ~/.warp/focus/focus.py start 30 "{{task}}"
 arguments:
   - name: task
     description: Quick task
@@ -25,25 +39,14 @@ tags:
   - quick
 
 ---
-name: Deep Work Session
-description: 45-minute deep work session
-command: python3 ~/.warp/focus/focus.py start 45 "{{task}}"
-arguments:
-  - name: task
-    description: Deep work task
-    default_value: "Deep work"
-tags:
-  - focus
-  - deep
-
----
 name: Morning Ritual
-description: Start your day with intention and planning
+description: Start your day - set your ONE essential task
 command: python3 ~/.warp/focus/focus.py gm
 tags:
   - focus
   - morning
   - ritual
+  - essentialism
 
 ---
 name: End of Day Review
@@ -53,6 +56,16 @@ tags:
   - focus
   - evening
   - reflection
+
+---
+name: Weekly 80/20 Review
+description: Essentialism review - what's producing real results?
+command: python3 ~/.warp/focus/focus.py review
+tags:
+  - focus
+  - weekly
+  - essentialism
+  - review
 
 ---
 name: Focus Stats Today
@@ -70,15 +83,6 @@ tags:
   - focus
   - stats
   - weekly
-
----
-name: Check Streaks
-description: View your current streak progress
-command: python3 ~/.warp/focus/focus.py streak
-tags:
-  - focus
-  - streak
-  - gamification
 
 ---
 name: Take a Break

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Focus Mode: Evidence-Based Productivity System
-A terminal-based focus tool built on behavioral science research.
+Focus Mode v2: Expert-Reviewed Productivity System
+Based on Cal Newport, Nir Eyal, and executive coaching methodologies.
+
+Philosophy: Minimalist deep work system with flexible sessions and Essentialism layer.
+No gamification - just clean tracking and evidence-based practices.
 """
 
 import json
-import os
-import random
 import subprocess
 import sys
 import time
 from datetime import datetime, date, timedelta
 from pathlib import Path
-from typing import Optional
 
 import click
 import yaml
@@ -20,9 +20,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from rich.prompt import Prompt, IntPrompt, Confirm
-from rich.table import Table
-from rich.text import Text
-from rich import box
 
 # Initialize Rich console
 console = Console()
@@ -33,7 +30,6 @@ CONFIG_FILE = FOCUS_DIR / "config.yaml"
 DATA_DIR = FOCUS_DIR / "data"
 SESSIONS_FILE = DATA_DIR / "sessions.json"
 STATS_FILE = DATA_DIR / "stats.json"
-QUOTES_FILE = FOCUS_DIR / "quotes.txt"
 ACTIVE_SESSION_FILE = DATA_DIR / ".active_session.json"
 
 
@@ -43,12 +39,8 @@ def load_config() -> dict:
         with open(CONFIG_FILE) as f:
             return yaml.safe_load(f)
     return {
-        "session": {"default_duration": 20, "short_break": 5, "long_break": 15, "sessions_before_long_break": 4},
-        "notifications": {"enabled": True, "sound": "Glass", "voice": True},
-        "gamification": {"base_xp": 50, "goal_bonus": 15, "no_distraction_bonus": 20,
-                         "first_session_bonus": 25, "streak_multiplier": 0.1, "critical_hit_chance": 0.10},
-        "streaks": {"sessions_per_day": 3, "freeze_earn_days": 7, "weekend_pause": False},
-        "goals": {"daily_sessions": 4, "daily_focus_minutes": 80}
+        "session": {"suggested_duration": 90, "short_break": 5, "long_break": 15},
+        "notifications": {"enabled": True, "sound": "Glass", "voice": True}
     }
 
 
@@ -58,28 +50,16 @@ def load_stats() -> dict:
         with open(STATS_FILE) as f:
             return json.load(f)
     return {
-        "xp": 0,
-        "level": 1,
         "total_sessions": 0,
         "total_focus_minutes": 0,
-        "streaks": {
-            "daily": 0,
-            "daily_best": 0,
-            "weekly": 0,
-            "weekly_best": 0,
-            "current_run": 0,
-            "current_run_best": 0,
-            "freezes_available": 0,
-            "last_session_date": None
-        },
         "today": {
             "date": str(date.today()),
             "sessions": 0,
             "focus_minutes": 0,
-            "xp_earned": 0,
-            "goal": None,
+            "essential_task": None,
             "energy_readings": []
-        }
+        },
+        "weekly_reviews": []
     }
 
 
@@ -105,15 +85,6 @@ def save_sessions(sessions: list):
         json.dump(sessions, f, indent=2)
 
 
-def get_random_quote() -> str:
-    """Get a random motivational quote."""
-    if QUOTES_FILE.exists():
-        with open(QUOTES_FILE) as f:
-            quotes = [line.strip() for line in f if line.strip()]
-        return random.choice(quotes) if quotes else "Stay focused!"
-    return "Stay focused!"
-
-
 def notify(title: str, message: str, sound: bool = True):
     """Send macOS notification."""
     config = load_config()
@@ -132,138 +103,17 @@ def say(message: str):
         subprocess.run(["say", message], capture_output=True)
 
 
-def get_level_info(xp: int) -> tuple[int, str, int, int]:
-    """Get level, title, XP for current level, XP needed for next level."""
-    level = 1
-    remaining_xp = xp
-    titles = {
-        (1, 5): "Apprentice",
-        (6, 10): "Focused",
-        (11, 15): "Deep Worker",
-        (16, 20): "Flow Master",
-        (21, 100): "Productivity Legend"
-    }
-
-    thresholds = [(5, 100), (5, 250), (5, 400), (5, 600)]
-
-    for count, xp_per_level in thresholds:
-        for _ in range(count):
-            if remaining_xp >= xp_per_level:
-                remaining_xp -= xp_per_level
-                level += 1
-            else:
-                # Found current level
-                for (low, high), title in titles.items():
-                    if low <= level <= high:
-                        return level, title, remaining_xp, xp_per_level
-                return level, "Legend", remaining_xp, 800
-
-    # Level 21+
-    while remaining_xp >= 800:
-        remaining_xp -= 800
-        level += 1
-
-    return level, "Productivity Legend", remaining_xp, 800
-
-
-def calculate_xp(session: dict, stats: dict, config: dict) -> tuple[int, list[str]]:
-    """Calculate XP earned for a session."""
-    gam = config.get("gamification", {})
-    base = gam.get("base_xp", 50)
-    bonuses = []
-    total = base
-
-    # Goal achieved bonus
-    if session.get("goal_achieved") in ["y", "yes", True]:
-        bonus = gam.get("goal_bonus", 15)
-        total += bonus
-        bonuses.append(f"+{bonus} goal achieved")
-    elif session.get("goal_achieved") == "partial":
-        bonus = gam.get("goal_bonus", 15) // 2
-        total += bonus
-        bonuses.append(f"+{bonus} partial goal")
-
-    # No distractions bonus
-    if session.get("distractions", 0) == 0:
-        bonus = gam.get("no_distraction_bonus", 20)
-        total += bonus
-        bonuses.append(f"+{bonus} no distractions")
-
-    # First session of day bonus
-    today_stats = stats.get("today", {})
-    if today_stats.get("date") != str(date.today()) or today_stats.get("sessions", 0) == 0:
-        bonus = gam.get("first_session_bonus", 25)
-        total += bonus
-        bonuses.append(f"+{bonus} first session")
-
-    # Streak multiplier
-    streak_days = stats.get("streaks", {}).get("daily", 0)
-    if streak_days > 0:
-        multiplier = min(2.0, 1.0 + (streak_days * gam.get("streak_multiplier", 0.1)))
-        if multiplier > 1.0:
-            streak_bonus = int(total * (multiplier - 1))
-            total += streak_bonus
-            bonuses.append(f"+{streak_bonus} streak x{multiplier:.1f}")
-
-    # Critical hit (random bonus)
-    if random.random() < gam.get("critical_hit_chance", 0.10):
-        crit_bonus = total  # Double the XP
-        total += crit_bonus
-        bonuses.append(f"+{crit_bonus} CRITICAL HIT!")
-
-    return total, bonuses
-
-
-def update_streaks(stats: dict, completed: bool = True):
-    """Update streak information after a session."""
-    streaks = stats.get("streaks", {})
-    today = str(date.today())
-    last_date = streaks.get("last_session_date")
-
-    if completed:
-        # Update current run
-        streaks["current_run"] = streaks.get("current_run", 0) + 1
-        streaks["current_run_best"] = max(streaks.get("current_run_best", 0), streaks["current_run"])
-
-        # Check daily streak
-        today_sessions = stats.get("today", {}).get("sessions", 0)
-        sessions_needed = load_config().get("streaks", {}).get("sessions_per_day", 3)
-
-        if today_sessions >= sessions_needed:
-            if last_date:
-                last = datetime.strptime(last_date, "%Y-%m-%d").date()
-                diff = (date.today() - last).days
-                if diff == 1:
-                    streaks["daily"] = streaks.get("daily", 0) + 1
-                elif diff > 1:
-                    # Check for freeze
-                    if streaks.get("freezes_available", 0) > 0 and diff == 2:
-                        streaks["freezes_available"] -= 1
-                        streaks["daily"] = streaks.get("daily", 0) + 1
-                    else:
-                        streaks["daily"] = 1
-            else:
-                streaks["daily"] = 1
-
-            streaks["daily_best"] = max(streaks.get("daily_best", 0), streaks["daily"])
-
-            # Earn freeze days
-            if streaks["daily"] > 0 and streaks["daily"] % 7 == 0:
-                streaks["freezes_available"] = streaks.get("freezes_available", 0) + 1
-
-        streaks["last_session_date"] = today
-    else:
-        # Session aborted
-        streaks["current_run"] = 0
-
-    stats["streaks"] = streaks
+def format_duration(minutes: int) -> str:
+    """Format minutes as Xh Ym."""
+    if minutes >= 60:
+        return f"{minutes // 60}h {minutes % 60}m"
+    return f"{minutes}m"
 
 
 def display_session_ui(task: str, duration_minutes: int, goal: str, intention: str):
     """Display the focus session UI with progress bar."""
     total_seconds = duration_minutes * 60
     start_time = time.time()
-    quote = get_random_quote()
     distractions = 0
     paused = False
     pause_time = 0
@@ -281,7 +131,7 @@ def display_session_ui(task: str, duration_minutes: int, goal: str, intention: s
             refresh_per_second=1
         ) as progress:
 
-            task_id = progress.add_task(f"[cyan]Focusing on: {task}", total=total_seconds)
+            task_id = progress.add_task(f"[cyan]Deep Work: {task}", total=total_seconds)
 
             while not progress.finished:
                 if paused:
@@ -305,9 +155,6 @@ def display_session_ui(task: str, duration_minutes: int, goal: str, intention: s
                     break
 
                 progress.update(task_id, completed=elapsed)
-
-                # Display session info
-                console.print(f"\n  [dim]Goal: {goal}[/dim]", end="\r")
 
                 # Check for keyboard input (non-blocking)
                 try:
@@ -337,9 +184,8 @@ def display_session_ui(task: str, duration_minutes: int, goal: str, intention: s
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
-    """Focus Mode: Evidence-Based Productivity System"""
+    """Focus Mode v2: Deep Work System (Expert-Reviewed)"""
     if ctx.invoked_subcommand is None:
-        # Default behavior: start a session or show status
         if ACTIVE_SESSION_FILE.exists():
             ctx.invoke(status)
         else:
@@ -354,29 +200,30 @@ def start(duration: int, task: str):
     config = load_config()
     stats = load_stats()
 
-    if duration == 0:
-        duration = config.get("session", {}).get("default_duration", 20)
-
     # Reset today's stats if new day
     if stats.get("today", {}).get("date") != str(date.today()):
         stats["today"] = {
             "date": str(date.today()),
             "sessions": 0,
             "focus_minutes": 0,
-            "xp_earned": 0,
-            "goal": stats.get("today", {}).get("tomorrow_priority"),
+            "essential_task": stats.get("today", {}).get("tomorrow_priority"),
             "energy_readings": []
         }
 
-    # Session count for today
     session_num = stats["today"]["sessions"] + 1
 
-    # Display session start
     console.print(Panel.fit(
-        "[bold cyan]FOCUS SESSION STARTING[/bold cyan]",
+        "[bold cyan]DEEP WORK SESSION[/bold cyan]",
         border_style="cyan"
     ))
-    console.print()
+
+    # Flexible duration - ask if not provided
+    if duration == 0:
+        console.print("\n[bold]How long will you focus?[/bold]")
+        console.print("  [dim]90 min - Deep work (recommended)[/dim]")
+        console.print("  [dim]60 min - Standard block[/dim]")
+        console.print("  [dim]30 min - Lighter tasks[/dim]")
+        duration = IntPrompt.ask("\n[cyan]Duration (minutes)[/cyan]", default=90)
 
     # Get task if not provided
     if not task:
@@ -385,12 +232,20 @@ def start(duration: int, task: str):
     console.print(f"\n[bold]Task:[/bold] {task}")
     console.print(f"[bold]Duration:[/bold] {duration} minutes")
     console.print(f"[bold]Session:[/bold] #{session_num} today")
+
+    # Essentialism check
     console.print()
+    is_essential = Confirm.ask("[cyan]Is this essential to your goals?[/cyan]", default=True)
+    if not is_essential:
+        console.print("[yellow]Consider: Is this the right thing to be working on?[/yellow]")
+        if not Confirm.ask("[cyan]Continue anyway?[/cyan]", default=True):
+            console.print("[dim]Session cancelled. Focus on what's essential.[/dim]")
+            return
 
     # Goal clarification (Flow trigger)
     goal = Prompt.ask("[cyan]What specific outcome marks this session complete?[/cyan]")
 
-    # Implementation intention
+    # Implementation intention (strongest evidence-based feature)
     distraction = Prompt.ask("[cyan]What might distract you?[/cyan]", default="notifications")
     response = Prompt.ask(f"[cyan]When you want to check {distraction}, you will:[/cyan]", default="note it and continue")
     intention = f"When I want to check {distraction}, I will {response}"
@@ -410,13 +265,13 @@ def start(duration: int, task: str):
         "task": task,
         "duration": duration,
         "goal": goal,
-        "intention": intention
+        "intention": intention,
+        "is_essential": is_essential
     }
     with open(ACTIVE_SESSION_FILE, "w") as f:
         json.dump(active_session, f)
 
-    # Run the session
-    notify("Focus Mode", f"Starting {duration}-minute session: {task}")
+    notify("Focus Mode", f"Starting {duration}-minute deep work session")
 
     result = display_session_ui(task, duration, goal, intention)
 
@@ -424,15 +279,14 @@ def start(duration: int, task: str):
     if ACTIVE_SESSION_FILE.exists():
         ACTIVE_SESSION_FILE.unlink()
 
-    # Session end
     console.clear()
 
     if result["completed"]:
         notify("Focus Mode", "Session complete! Great work!", sound=True)
-        say("Focus session complete. Great work!")
+        say("Deep work session complete.")
 
         console.print(Panel.fit(
-            "[bold green]SESSION COMPLETE![/bold green]",
+            f"[bold green]SESSION COMPLETE - {duration} minutes[/bold green]",
             border_style="green"
         ))
 
@@ -444,75 +298,51 @@ def start(duration: int, task: str):
             default="y"
         )
 
-        productivity = IntPrompt.ask(
-            "[cyan]Productivity rating (1-5)[/cyan]",
-            default=4
-        )
-
         resume_note = Prompt.ask(
-            "[cyan]Note for when you resume this work[/cyan]",
+            "[cyan]Note for next session[/cyan]",
             default=""
         )
 
-        # Calculate XP
+        # Save session data
         session_data = {
             "task": task,
             "goal": goal,
             "goal_achieved": goal_achieved,
-            "productivity": productivity,
             "distractions": result.get("distractions", 0),
             "duration": duration,
+            "is_essential": is_essential,
             "resume_note": resume_note,
             "timestamp": datetime.now().isoformat()
         }
 
-        xp_earned, bonuses = calculate_xp(session_data, stats, config)
-
         # Update stats
-        stats["xp"] += xp_earned
         stats["total_sessions"] += 1
         stats["total_focus_minutes"] += duration
         stats["today"]["sessions"] += 1
         stats["today"]["focus_minutes"] += duration
-        stats["today"]["xp_earned"] += xp_earned
 
-        # Update streaks
-        update_streaks(stats, completed=True)
-
-        # Get level info
-        level, title, level_xp, next_level_xp = get_level_info(stats["xp"])
-        stats["level"] = level
-
-        # Save session
+        # Save
         sessions = load_sessions()
         sessions.append(session_data)
         save_sessions(sessions)
         save_stats(stats)
 
-        # Display XP earned
+        # Show simple stats
         console.print()
-        console.print(f"[bold green]+{xp_earned} XP[/bold green]")
-        for bonus in bonuses:
-            console.print(f"  [dim]{bonus}[/dim]")
+        console.print(f"[bold]Today:[/bold] {stats['today']['sessions']} sessions | {format_duration(stats['today']['focus_minutes'])}")
 
-        console.print()
-        console.print(f"[bold]Level {level} {title}[/bold] | {stats['xp']} XP total")
-
-        # Progress bar to next level
-        progress_pct = int((level_xp / next_level_xp) * 20)
-        bar = "█" * progress_pct + "░" * (20 - progress_pct)
-        console.print(f"[{bar}] {level_xp}/{next_level_xp} to next level")
-
-        # Streak info
-        streaks = stats.get("streaks", {})
-        console.print(f"\n[dim]Streak: {streaks.get('daily', 0)} days | Run: {streaks.get('current_run', 0)} sessions[/dim]")
+        # Get week stats
+        week_start = date.today() - timedelta(days=date.today().weekday())
+        week_sessions = [s for s in sessions if s.get("timestamp", "")[:10] >= str(week_start)]
+        week_minutes = sum(s.get("duration", 0) for s in week_sessions)
+        console.print(f"[bold]This week:[/bold] {len(week_sessions)} sessions | {format_duration(week_minutes)}")
 
         # Suggest break
         console.print()
         sessions_today = stats["today"]["sessions"]
         if sessions_today % 4 == 0:
             break_time = config.get("session", {}).get("long_break", 15)
-            console.print(f"[yellow]Time for a longer break! ({break_time} min suggested)[/yellow]")
+            console.print(f"[cyan]Take a {break_time}-minute break. You've earned it.[/cyan]")
         else:
             break_time = config.get("session", {}).get("short_break", 5)
             console.print(f"[cyan]Take a {break_time}-minute break. Stand, stretch, hydrate.[/cyan]")
@@ -521,17 +351,17 @@ def start(duration: int, task: str):
             do_break(break_time)
 
     else:
+        elapsed = result.get("minutes", 0)
         console.print(Panel.fit(
-            f"[yellow]Session ended early ({result.get('minutes', 0)} min)[/yellow]",
+            f"[yellow]Session ended early ({elapsed} min)[/yellow]",
             border_style="yellow"
         ))
 
-        # Still log partial session
         session_data = {
             "task": task,
             "goal": goal,
             "completed": False,
-            "minutes_completed": result.get("minutes", 0),
+            "minutes_completed": elapsed,
             "reason": result.get("reason", "stopped"),
             "timestamp": datetime.now().isoformat()
         }
@@ -539,9 +369,6 @@ def start(duration: int, task: str):
         sessions = load_sessions()
         sessions.append(session_data)
         save_sessions(sessions)
-
-        # Update streaks (broken run)
-        update_streaks(stats, completed=False)
         save_stats(stats)
 
 
@@ -574,7 +401,7 @@ def do_break(duration: int):
             progress.advance(task)
 
     notify("Focus Mode", "Break's over! Ready for another session?")
-    say("Break complete. Ready to focus again?")
+    say("Break complete.")
     console.print("\n[green]Break complete! Type 'focus' to start another session.[/green]")
 
 
@@ -587,10 +414,9 @@ def break_(duration: int):
 
 @cli.command()
 def status():
-    """Show current session status or stats."""
+    """Show current session status or quick stats."""
     stats = load_stats()
 
-    # Check for active session
     if ACTIVE_SESSION_FILE.exists():
         with open(ACTIVE_SESSION_FILE) as f:
             session = json.load(f)
@@ -603,15 +429,19 @@ def status():
         ))
         return
 
-    # Show quick stats
-    level, title, level_xp, next_level_xp = get_level_info(stats.get("xp", 0))
-    streaks = stats.get("streaks", {})
     today = stats.get("today", {})
+    sessions = load_sessions()
+
+    # Week stats
+    week_start = date.today() - timedelta(days=date.today().weekday())
+    week_sessions = [s for s in sessions if s.get("timestamp", "")[:10] >= str(week_start)]
+    week_minutes = sum(s.get("duration", s.get("minutes_completed", 0)) for s in week_sessions)
 
     console.print(Panel.fit(
-        f"[bold]Level {level} {title}[/bold] | {stats.get('xp', 0)} XP\n\n"
-        f"Today: {today.get('sessions', 0)} sessions | {today.get('focus_minutes', 0)} min\n"
-        f"Streak: {streaks.get('daily', 0)} days | Run: {streaks.get('current_run', 0)}\n\n"
+        f"[bold]TODAY[/bold]\n"
+        f"Sessions: {today.get('sessions', 0)} | Focus: {format_duration(today.get('focus_minutes', 0))}\n\n"
+        f"[bold]THIS WEEK[/bold]\n"
+        f"Sessions: {len(week_sessions)} | Focus: {format_duration(week_minutes)}\n\n"
         f"[dim]Type 'focus' to start a session[/dim]",
         title="Focus Mode",
         border_style="blue"
@@ -624,46 +454,49 @@ def stats(period: str):
     """Show statistics."""
     stats_data = load_stats()
     sessions = load_sessions()
-
-    level, title, level_xp, next_level_xp = get_level_info(stats_data.get("xp", 0))
-    streaks = stats_data.get("streaks", {})
     today = stats_data.get("today", {})
 
     if period == "today":
         console.print(Panel.fit(
-            f"[bold cyan]TODAY'S FOCUS[/bold cyan]\n"
+            f"[bold cyan]TODAY[/bold cyan]\n"
             f"[dim]{date.today().strftime('%A, %B %d')}[/dim]",
             border_style="cyan"
         ))
 
         console.print(f"\nSessions: [bold]{today.get('sessions', 0)}[/bold]")
-        console.print(f"Focus time: [bold]{today.get('focus_minutes', 0)} min[/bold]")
-        console.print(f"XP earned: [bold]+{today.get('xp_earned', 0)}[/bold]")
+        console.print(f"Focus time: [bold]{format_duration(today.get('focus_minutes', 0))}[/bold]")
 
         # Today's sessions
         today_sessions = [s for s in sessions if s.get("timestamp", "").startswith(str(date.today()))]
         if today_sessions:
+            completed = len([s for s in today_sessions if s.get("goal_achieved") or s.get("completed", True)])
+            console.print(f"Completion rate: [bold]{int(completed/len(today_sessions)*100)}%[/bold]")
+
             console.print("\n[bold]Sessions:[/bold]")
             for s in today_sessions:
-                status = "[green]✓[/green]" if s.get("completed", s.get("goal_achieved")) else "[yellow]○[/yellow]"
+                status_icon = "[green]✓[/green]" if s.get("goal_achieved") or s.get("completed", True) else "[yellow]○[/yellow]"
                 time_str = s.get("timestamp", "")[:16].split("T")[1] if "T" in s.get("timestamp", "") else ""
-                console.print(f"  {status} {time_str} - {s.get('task', 'Unknown')} ({s.get('duration', s.get('minutes_completed', 0))} min)")
+                duration = s.get('duration', s.get('minutes_completed', 0))
+                console.print(f"  {status_icon} {time_str} - {s.get('task', 'Unknown')} ({duration} min)")
 
     elif period == "week":
         console.print(Panel.fit(
-            "[bold cyan]THIS WEEK'S FOCUS[/bold cyan]",
+            "[bold cyan]THIS WEEK[/bold cyan]",
             border_style="cyan"
         ))
 
-        # Calculate weekly stats
         week_start = date.today() - timedelta(days=date.today().weekday())
         week_sessions = [s for s in sessions if s.get("timestamp", "")[:10] >= str(week_start)]
 
-        total_sessions = len([s for s in week_sessions if s.get("completed", s.get("goal_achieved"))])
+        total_sessions = len(week_sessions)
+        completed_sessions = len([s for s in week_sessions if s.get("goal_achieved") or s.get("completed", True)])
         total_minutes = sum(s.get("duration", s.get("minutes_completed", 0)) for s in week_sessions)
+        avg_duration = total_minutes // total_sessions if total_sessions > 0 else 0
 
         console.print(f"\nSessions: [bold]{total_sessions}[/bold]")
-        console.print(f"Focus time: [bold]{total_minutes // 60}h {total_minutes % 60}m[/bold]")
+        console.print(f"Focus time: [bold]{format_duration(total_minutes)}[/bold]")
+        console.print(f"Avg session: [bold]{avg_duration} min[/bold]")
+        console.print(f"Completion rate: [bold]{int(completed_sessions/total_sessions*100) if total_sessions > 0 else 0}%[/bold]")
 
         # Daily breakdown
         console.print("\n[bold]Daily breakdown:[/bold]")
@@ -675,7 +508,33 @@ def stats(period: str):
             bar = "█" * bar_len + "░" * (20 - bar_len)
             day_name = day.strftime("%a")
             marker = " <- Today" if day == date.today() else ""
-            console.print(f"  {day_name} [{bar}] {day_minutes} min{marker}")
+            console.print(f"  {day_name} [{bar}] {format_duration(day_minutes)}{marker}")
+
+        # Insights
+        if week_sessions:
+            console.print("\n[bold]Insights:[/bold]")
+
+            # Find peak hours
+            hour_counts = {}
+            for s in week_sessions:
+                if "T" in s.get("timestamp", ""):
+                    hour = int(s["timestamp"].split("T")[1][:2])
+                    hour_counts[hour] = hour_counts.get(hour, 0) + 1
+
+            if hour_counts:
+                peak_hour = max(hour_counts, key=hour_counts.get)
+                console.print(f"  Peak focus hour: {peak_hour}:00 - {peak_hour+1}:00")
+
+            # Find most productive day
+            day_counts = {}
+            for s in week_sessions:
+                day = s.get("timestamp", "")[:10]
+                day_counts[day] = day_counts.get(day, 0) + s.get("duration", 0)
+
+            if day_counts:
+                best_day = max(day_counts, key=day_counts.get)
+                best_day_name = datetime.strptime(best_day, "%Y-%m-%d").strftime("%A")
+                console.print(f"  Most productive: {best_day_name}")
 
     else:
         # All-time stats
@@ -684,66 +543,113 @@ def stats(period: str):
             border_style="cyan"
         ))
 
-        console.print(f"\n[bold]Level {level} {title}[/bold]")
-        console.print(f"Total XP: {stats_data.get('xp', 0)}")
-        console.print(f"Total sessions: {stats_data.get('total_sessions', 0)}")
-        console.print(f"Total focus time: {stats_data.get('total_focus_minutes', 0) // 60}h {stats_data.get('total_focus_minutes', 0) % 60}m")
+        console.print(f"\nTotal sessions: [bold]{stats_data.get('total_sessions', 0)}[/bold]")
+        console.print(f"Total focus time: [bold]{format_duration(stats_data.get('total_focus_minutes', 0))}[/bold]")
 
-    # Always show streaks
-    console.print(f"\n[bold]Streaks:[/bold]")
-    console.print(f"  Daily: {streaks.get('daily', 0)} days (best: {streaks.get('daily_best', 0)})")
-    console.print(f"  Run: {streaks.get('current_run', 0)} sessions (best: {streaks.get('current_run_best', 0)})")
-    console.print(f"  Freezes: {streaks.get('freezes_available', 0)} available")
+        if stats_data.get('total_sessions', 0) > 0:
+            avg = stats_data.get('total_focus_minutes', 0) // stats_data.get('total_sessions', 1)
+            console.print(f"Avg session length: [bold]{avg} min[/bold]")
 
 
 @cli.command()
-def streak():
-    """Show streak information."""
+def review():
+    """Weekly Essentialism review - 80/20 analysis."""
     stats_data = load_stats()
-    streaks = stats_data.get("streaks", {})
+    sessions = load_sessions()
 
     console.print(Panel.fit(
-        "[bold cyan]YOUR STREAKS[/bold cyan]",
+        "[bold cyan]WEEKLY ESSENTIALISM REVIEW[/bold cyan]\n"
+        "[dim]Based on Greg McKeown's methodology[/dim]",
         border_style="cyan"
     ))
 
-    # Daily streak visualization
-    daily = streaks.get("daily", 0)
-    daily_bar = "█" * min(daily, 10) + "░" * max(0, 10 - daily)
-    console.print(f"\n[bold]Daily Streak:[/bold] {daily} days")
-    console.print(f"  [{daily_bar}] Best: {streaks.get('daily_best', 0)} days")
+    # This week's stats
+    week_start = date.today() - timedelta(days=date.today().weekday())
+    week_sessions = [s for s in sessions if s.get("timestamp", "")[:10] >= str(week_start)]
 
-    # Current run
-    run = streaks.get("current_run", 0)
-    run_bar = "█" * min(run, 10) + "░" * max(0, 10 - run)
-    console.print(f"\n[bold]Current Run:[/bold] {run} sessions")
-    console.print(f"  [{run_bar}] Best: {streaks.get('current_run_best', 0)} sessions")
+    total_sessions = len(week_sessions)
+    total_minutes = sum(s.get("duration", s.get("minutes_completed", 0)) for s in week_sessions)
 
-    # Freezes
-    freezes = streaks.get("freezes_available", 0)
-    console.print(f"\n[bold]Freeze Days:[/bold] {freezes} available")
-    console.print(f"  [dim]Earn 1 freeze for every 7 consecutive days[/dim]")
+    console.print(f"\n[bold]This week:[/bold] {total_sessions} sessions | {format_duration(total_minutes)}")
 
-    # Next milestone
-    next_freeze_in = 7 - (daily % 7) if daily > 0 else 7
-    console.print(f"\n[dim]Next freeze in: {next_freeze_in} days[/dim]")
+    # Show what you worked on
+    if week_sessions:
+        tasks = {}
+        for s in week_sessions:
+            task = s.get("task", "Unknown")
+            tasks[task] = tasks.get(task, 0) + s.get("duration", 0)
+
+        console.print("\n[bold]Time spent:[/bold]")
+        for task, minutes in sorted(tasks.items(), key=lambda x: x[1], reverse=True)[:5]:
+            console.print(f"  - {task}: {format_duration(minutes)}")
+
+    # 80/20 Questions
+    console.print("\n" + "━" * 50)
+    console.print("[bold]THE 80/20 QUESTIONS[/bold]")
+    console.print("━" * 50)
+
+    q1 = Prompt.ask("\n[cyan]Which 20% of your work produced 80% of meaningful results?[/cyan]", default="")
+
+    q2 = Prompt.ask("\n[cyan]What should you STOP doing?[/cyan]", default="")
+
+    q3 = Prompt.ask("\n[cyan]What deserves MORE of your time next week?[/cyan]", default="")
+
+    q4 = Prompt.ask("\n[cyan]Next week's ONE essential priority?[/cyan]", default="")
+
+    # Save review
+    review_data = {
+        "week_start": str(week_start),
+        "date": str(date.today()),
+        "sessions": total_sessions,
+        "focus_minutes": total_minutes,
+        "produced_results": q1,
+        "stop_doing": q2,
+        "more_time": q3,
+        "next_priority": q4
+    }
+
+    if "weekly_reviews" not in stats_data:
+        stats_data["weekly_reviews"] = []
+    stats_data["weekly_reviews"].append(review_data)
+    save_stats(stats_data)
+
+    # Save to reflections file
+    reflection_dir = DATA_DIR / "reflections"
+    reflection_dir.mkdir(exist_ok=True)
+
+    review_file = reflection_dir / f"week-{week_start}.md"
+    with open(review_file, "w") as f:
+        f.write(f"# Weekly Review: {week_start} to {date.today()}\n\n")
+        f.write(f"## Stats\n")
+        f.write(f"- Sessions: {total_sessions}\n")
+        f.write(f"- Focus time: {format_duration(total_minutes)}\n\n")
+        f.write(f"## 80/20 Analysis\n\n")
+        f.write(f"**What produced 80% of results:** {q1}\n\n")
+        f.write(f"**Stop doing:** {q2}\n\n")
+        f.write(f"**More time on:** {q3}\n\n")
+        f.write(f"**Next week's priority:** {q4}\n")
+
+    console.print()
+    console.print(Panel.fit(
+        f"[bold green]Review saved![/bold green]\n\n"
+        f"[dim]Next week's focus: {q4}[/dim]",
+        border_style="green"
+    ))
 
 
 @cli.command()
 def gm():
     """Morning ritual - start your day with intention."""
     stats_data = load_stats()
-    config = load_config()
 
-    # Check if new day, reset today stats
+    # Reset today's stats if new day
     if stats_data.get("today", {}).get("date") != str(date.today()):
         yesterday = stats_data.get("today", {})
         stats_data["today"] = {
             "date": str(date.today()),
             "sessions": 0,
             "focus_minutes": 0,
-            "xp_earned": 0,
-            "goal": yesterday.get("tomorrow_priority"),
+            "essential_task": yesterday.get("tomorrow_priority"),
             "energy_readings": []
         }
 
@@ -754,22 +660,35 @@ def gm():
     ))
 
     # Yesterday's summary
-    yesterday_date = date.today() - timedelta(days=1)
     sessions = load_sessions()
+    yesterday_date = date.today() - timedelta(days=1)
     yesterday_sessions = [s for s in sessions if s.get("timestamp", "")[:10] == str(yesterday_date)]
 
     if yesterday_sessions:
-        completed = len([s for s in yesterday_sessions if s.get("completed", s.get("goal_achieved"))])
+        completed = len([s for s in yesterday_sessions if s.get("goal_achieved") or s.get("completed", True)])
         minutes = sum(s.get("duration", s.get("minutes_completed", 0)) for s in yesterday_sessions)
-        console.print(f"\n[bold]Yesterday:[/bold] {completed} sessions | {minutes} min focused")
+        console.print(f"\n[bold]Yesterday:[/bold] {completed} sessions | {format_duration(minutes)}")
 
-    # Current streak
-    streaks = stats_data.get("streaks", {})
-    console.print(f"[bold]Streak:[/bold] {streaks.get('daily', 0)} days")
+    # Essentialism question (McKeown)
+    console.print("\n" + "━" * 50)
+    console.print("[bold]THE ONE THING[/bold]")
+    console.print("[dim]What is the ONE thing that would make everything else easier?[/dim]")
+    console.print("━" * 50)
 
-    # Level
-    level, title, _, _ = get_level_info(stats_data.get("xp", 0))
-    console.print(f"[bold]Level:[/bold] {level} {title}")
+    essential_task = stats_data["today"].get("essential_task", "")
+    if essential_task:
+        console.print(f"\n[dim]Yesterday you set: {essential_task}[/dim]")
+
+    priority = Prompt.ask("\n[cyan]Today's essential task[/cyan]", default=essential_task or "")
+    stats_data["today"]["essential_task"] = priority
+
+    # Is it truly essential?
+    if priority:
+        console.print(f"\n[dim]'{priority}'[/dim]")
+        is_truly_essential = Confirm.ask("[cyan]Is this truly essential, or merely good?[/cyan]", default=True)
+        if not is_truly_essential:
+            priority = Prompt.ask("[cyan]What's actually essential?[/cyan]", default="")
+            stats_data["today"]["essential_task"] = priority
 
     # Energy check
     console.print()
@@ -779,32 +698,13 @@ def gm():
         "level": energy
     })
 
-    # Focus level for today
-    console.print("\n[bold]Focus level today:[/bold]")
-    console.print("  [1] Light (2 sessions)")
-    console.print("  [2] Normal (4 sessions)")
-    console.print("  [3] Deep (6 sessions)")
-
-    focus_level = IntPrompt.ask("[cyan]Choose[/cyan]", default=2)
-    session_goals = {1: 2, 2: 4, 3: 6}
-    stats_data["today"]["session_goal"] = session_goals.get(focus_level, 4)
-
-    # Priority
-    yesterday_priority = stats_data["today"].get("goal", "")
-    if yesterday_priority:
-        console.print(f"\n[dim]Yesterday you set: {yesterday_priority}[/dim]")
-
-    priority = Prompt.ask("[cyan]What's your #1 priority today?[/cyan]", default=yesterday_priority or "")
-    stats_data["today"]["goal"] = priority
-
     save_stats(stats_data)
 
     console.print()
     console.print(Panel.fit(
-        f"[bold green]Ready to go![/bold green]\n\n"
-        f"Goal: {session_goals.get(focus_level, 4)} focused sessions\n"
-        f"Priority: {priority}\n\n"
-        f"[dim]Type 'focus' to begin your first session[/dim]",
+        f"[bold green]Ready for deep work[/bold green]\n\n"
+        f"Essential task: {priority}\n\n"
+        f"[dim]Type 'focus' to begin[/dim]",
         border_style="green"
     ))
 
@@ -825,32 +725,32 @@ def eod():
     ))
 
     # Today's results
-    session_goal = today.get("session_goal", 4)
     completed = today.get("sessions", 0)
-    completion_pct = int((completed / session_goal) * 100) if session_goal > 0 else 0
+    focus_time = today.get("focus_minutes", 0)
 
-    console.print(f"\n[bold]Sessions:[/bold] {completed}/{session_goal} ({completion_pct}%)")
-    console.print(f"[bold]Focus time:[/bold] {today.get('focus_minutes', 0)} min")
-    console.print(f"[bold]XP earned:[/bold] +{today.get('xp_earned', 0)}")
+    console.print(f"\n[bold]Sessions:[/bold] {completed}")
+    console.print(f"[bold]Focus time:[/bold] {format_duration(focus_time)}")
 
-    # Streak update
-    streaks = stats_data.get("streaks", {})
-    if completed >= 3:
-        console.print(f"\n[green]Streak extended to {streaks.get('daily', 0)} days![/green]")
-    else:
-        console.print(f"\n[yellow]Need {3 - completed} more sessions to maintain streak[/yellow]")
+    # Essential task check
+    essential_task = today.get("essential_task", "")
+    if essential_task:
+        console.print(f"\n[bold]Essential task:[/bold] {essential_task}")
+        achieved = Confirm.ask("[cyan]Did you make progress on this?[/cyan]", default=True)
+        if achieved:
+            console.print("[green]Excellent. That's what matters.[/green]")
+        else:
+            console.print("[yellow]Tomorrow is another opportunity.[/yellow]")
 
     # Show completed tasks
     if today_sessions:
         console.print("\n[bold]Completed:[/bold]")
         for s in today_sessions:
-            if s.get("completed", s.get("goal_achieved")):
+            if s.get("goal_achieved") or s.get("completed", True):
                 console.print(f"  [green]✓[/green] {s.get('task', 'Unknown')}")
 
     # Reflection
     console.print()
     went_well = Prompt.ask("[cyan]What went well today?[/cyan]", default="")
-
     tomorrow = Prompt.ask("[cyan]What's tomorrow's priority?[/cyan]", default="")
 
     # Save reflection
@@ -862,10 +762,11 @@ def eod():
         with open(reflection_file, "w") as f:
             f.write(f"# {date.today().strftime('%A, %B %d, %Y')}\n\n")
             f.write(f"## Stats\n")
-            f.write(f"- Sessions: {completed}/{session_goal}\n")
-            f.write(f"- Focus time: {today.get('focus_minutes', 0)} min\n")
-            f.write(f"- XP: +{today.get('xp_earned', 0)}\n\n")
-            f.write(f"## Reflection\n")
+            f.write(f"- Sessions: {completed}\n")
+            f.write(f"- Focus time: {format_duration(focus_time)}\n")
+            if essential_task:
+                f.write(f"- Essential task: {essential_task}\n")
+            f.write(f"\n## Reflection\n")
             f.write(f"**What went well:** {went_well}\n\n")
             f.write(f"**Tomorrow's priority:** {tomorrow}\n")
 
@@ -875,13 +776,13 @@ def eod():
 
     console.print()
     console.print(Panel.fit(
-        "[bold green]Great work today![/bold green]\n\n"
-        f"[dim]Reflection saved. Rest well![/dim]",
+        "[bold green]Good work today.[/bold green]\n\n"
+        f"[dim]Rest well. Tomorrow's focus: {tomorrow}[/dim]",
         border_style="green"
     ))
 
 
-# Alias 'break' command (break is a reserved word)
+# Alias 'break' command
 cli.add_command(break_, name="break")
 
 

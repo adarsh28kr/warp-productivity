@@ -299,14 +299,13 @@ show_tip() {
         "tips|See another tip|tips"
         "alltips|Browse all tips|alltips"
 
-        # Focus Mode
-        "focus|Start a 20-min focus session|focus"
-        "gm|Morning ritual - set daily intention|gm"
+        # Focus Mode (Deep Work)
+        "focus|Start a deep work session (flexible duration)|focus"
+        "focus 90|90-min deep work session (recommended)|focus 90"
+        "gm|Morning ritual - set your ONE essential task|gm"
         "eod|End of day review and reflection|eod"
         "fstats|View your focus statistics|fstats"
-        "fstreak|Check your streak progress|fstreak"
-        "f20|Quick 20-minute focus session|f20 \"task name\""
-        "fdeep|Deep 45-minute focus session|fdeep \"deep work\""
+        "freview|Weekly 80/20 review (Essentialism)|focus review"
     )
 
     local total=${#tips[@]}
@@ -414,15 +413,16 @@ alltips() {
     echo "  weather   → current weather"
     echo "  cheat     → command cheatsheet"
     echo ""
-    echo "  FOCUS MODE"
-    echo "  ──────────"
-    echo "  focus     → start 20-min focus session"
-    echo "  gm        → morning ritual (set intention)"
-    echo "  eod       → end of day review"
-    echo "  fstats    → view today's focus stats"
-    echo "  fstreak   → check your streaks"
-    echo "  f20 task  → quick 20-min session"
-    echo "  fdeep     → deep 45-min session"
+    echo "  DEEP WORK (Focus Mode v2)"
+    echo "  ─────────────────────────"
+    echo "  focus       → start session (prompts for duration)"
+    echo "  focus 90    → 90-min deep work (recommended)"
+    echo "  focus 60    → 60-min standard session"
+    echo "  focus 30    → 30-min lighter task"
+    echo "  gm          → morning ritual (set ONE essential task)"
+    echo "  eod         → end of day review"
+    echo "  fstats      → view focus statistics"
+    echo "  focus review→ weekly 80/20 Essentialism review"
     echo ""
     echo "  Type 'tips' for a random tip"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -443,26 +443,26 @@ setopt HIST_IGNORE_SPACE
 setopt SHARE_HISTORY
 
 # -----------------------------------------------------------------------------
-# Focus Mode Integration
+# Focus Mode v2 Integration (Deep Work System)
 # -----------------------------------------------------------------------------
-# Focus CLI - Evidence-based productivity system
+# Based on Cal Newport, Nir Eyal, and Essentialism principles
+# No gamification - just clean tracking and evidence-based practices
+
 alias focus="python3 ~/.warp/focus/focus.py"
 alias f="focus"
-alias fs="focus start"
 alias fst="focus status"
 alias fb="focus break"
 alias fstats="focus stats"
-alias fstreak="focus streak"
+alias freview="focus review"
 
 # Morning and evening rituals
 alias gm="focus gm"
 alias eod="focus eod"
 
-# Quick session shortcuts
-f20() { focus start 20 "$@"; }
-f15() { focus start 15 "$@"; }
-f30() { focus start 30 "$@"; }
-fdeep() { focus start 45 "$@"; }
+# Quick session shortcuts (flexible duration)
+f90() { focus start 90 "$@"; }   # Deep work (recommended)
+f60() { focus start 60 "$@"; }   # Standard session
+f30() { focus start 30 "$@"; }   # Lighter tasks
 
 # Show startup tip
 show_tip

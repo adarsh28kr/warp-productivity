@@ -1,28 +1,38 @@
-# Focus Mode Configuration
+# Focus Mode v2 Configuration
+# Based on Cal Newport, Nir Eyal, and Essentialism principles
+
 session:
-  default_duration: 20          # minutes (matches your 20-30 min natural rhythm)
+  # Flexible duration - user chooses each time
+  # Suggestions shown: 90 (deep work), 60 (standard), 30 (lighter tasks)
+  suggested_durations:
+    - 90   # Deep work (recommended by Cal Newport)
+    - 60   # Standard focus block
+    - 30   # Lighter tasks
+
   short_break: 5                # minutes
   long_break: 15                # minutes
-  sessions_before_long_break: 4
+  sessions_before_long_break: 2 # After 2 deep sessions
 
 notifications:
   enabled: true
   sound: "Glass"                # macOS sound name
   voice: true                   # Use 'say' command
 
-gamification:
-  base_xp: 50                   # XP for completing a session
-  goal_bonus: 15                # Bonus for achieving session goal
-  no_distraction_bonus: 20      # Bonus for no distractions
-  first_session_bonus: 25       # Bonus for first session of day
-  streak_multiplier: 0.1        # 10% bonus per streak day (caps at 2x)
-  critical_hit_chance: 0.10     # 10% chance for 2x XP
-
-streaks:
-  sessions_per_day: 3           # Sessions needed for daily streak
-  freeze_earn_days: 7           # Days to earn a freeze
-  weekend_pause: false          # Pause streaks on weekends
+# No gamification - clean tracking only
+tracking:
+  log_sessions: true            # Keep session history
+  log_reflections: true         # Keep morning/evening notes
+  weekly_review_day: "Sunday"   # Day to prompt for 80/20 review
 
 goals:
-  daily_sessions: 4             # Default daily goal
-  daily_focus_minutes: 80       # Default daily focus time goal
+  # Simple focus time tracking
+  daily_focus_minutes: 180      # 3 hours of deep work (realistic target)
+
+essentialism:
+  # Prompts to help identify essential work
+  morning_prompt: "What is the ONE thing that would make everything else easier?"
+  session_check: "Is this essential to your goals?"
+  weekly_questions:
+    - "Which 20% of your work produced 80% of meaningful results?"
+    - "What should you STOP doing?"
+    - "What deserves MORE of your time next week?"

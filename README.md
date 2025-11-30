@@ -1,12 +1,12 @@
 # Warp Productivity Setup
 
-Your personalized Warp terminal configuration for maximum productivity.
+Your personalized Warp terminal configuration for deep work and productivity.
 
 ## Structure
 
 ```
 ~/.warp/
-├── focus/                         # Focus Mode system
+├── focus/                         # Focus Mode v2 system
 │   ├── focus.py                   # CLI application
 │   ├── config.yaml               # Settings
 │   ├── quotes.txt                # Motivational quotes
@@ -25,41 +25,56 @@ Your personalized Warp terminal configuration for maximum productivity.
 └── README.md
 ```
 
-## Focus Mode
+## Focus Mode v2
 
-Evidence-based productivity system with XP, levels, streaks, and rituals.
+Expert-reviewed deep work system based on Cal Newport, Nir Eyal, and Essentialism principles.
+
+**Philosophy**: Minimalist system with flexible sessions and no gamification. Focus on essential work.
 
 ### Quick Start
 
 ```bash
-focus              # Start 20-min focus session
-gm                 # Morning ritual (set daily intention)
+focus              # Start session (prompts for duration)
+focus 90           # 90-min deep work block (recommended)
+gm                 # Morning ritual - set ONE essential task
 eod                # End of day review
-fstats             # View today's stats
-fstreak            # Check your streaks
+fstats             # View your stats
+focus review       # Weekly 80/20 Essentialism review
 ```
 
 ### Commands
 
 | Command | Description |
 |---------|-------------|
-| `focus` | Start a 20-min focus session |
-| `focus 15 "task"` | Custom duration with task |
+| `focus` | Start a focus session (flexible duration) |
+| `focus 90` | Start 90-min deep work session |
+| `focus 60` | Start 60-min standard session |
+| `focus 30` | Start 30-min lighter task session |
 | `focus status` | Show current status |
 | `focus stats` | Today's statistics |
 | `focus stats week` | Weekly summary |
-| `focus streak` | Streak progress |
+| `focus review` | Weekly 80/20 review |
 | `focus break` | Take a break |
 | `gm` | Morning ritual |
 | `eod` | End of day review |
 
 ### Features
 
-- **20-min sessions** matching your natural focus rhythm
-- **XP & Levels**: Earn points, level up from Apprentice to Legend
-- **Streaks**: Daily streaks with freeze protection
-- **Implementation Intentions**: "When X, I will Y" to handle distractions
-- **Morning/Evening Rituals**: Set goals, reflect, plan
+- **Flexible sessions**: 90 min (deep work), 60 min (standard), 30 min (lighter tasks)
+- **Essentialism prompts**: "Is this essential?" before each session
+- **Implementation Intentions**: "When X, I will Y" for handling distractions
+- **Morning ritual**: Set your ONE essential task for the day
+- **Weekly 80/20 review**: Identify what produces real results
+- **Clean statistics**: No gamification, just honest tracking
+
+### Expert Alignment
+
+| Expert | Principle | Implementation |
+|--------|-----------|----------------|
+| Cal Newport | 50-90 min deep work blocks | Flexible duration, 90 min recommended |
+| Nir Eyal | Implementation intentions | "When X, I will Y" prompts |
+| McKeown | Essentialism | "Is this essential?" checks |
+| Tim Ferriss | 80/20 analysis | Weekly review command |
 
 ## Shell Aliases
 
@@ -94,4 +109,4 @@ Focus Mode requires:
 pip install rich click pyyaml
 ```
 
-Built with behavioral science: Pomodoro, implementation intentions, variable rewards, streak psychology.
+Built with behavioral science: Deep Work principles, implementation intentions, Essentialism methodology.
