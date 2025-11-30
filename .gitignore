@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data directory (personal session logs)
+focus/data/
+
+# macOS
+.DS_Store

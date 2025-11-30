@@ -6,7 +6,7 @@ Your personalized Warp terminal configuration for deep work and productivity.
 
 ```
 ~/.warp/
-├── focus/                         # Focus Mode v2 system
+├── focus/                         # Focus Mode v3 system
 │   ├── focus.py                   # CLI application
 │   ├── config.yaml               # Settings
 │   ├── quotes.txt                # Motivational quotes
@@ -25,24 +25,25 @@ Your personalized Warp terminal configuration for deep work and productivity.
 └── README.md
 ```
 
-## Focus Mode v2
+## Focus Mode v3 - Executive-Level Deep Work System
 
-Expert-reviewed deep work system based on Cal Newport, Nir Eyal, and Essentialism principles.
+Expert-reviewed system synthesizing neuroscience, environment design, and behavioral architecture.
 
-**Philosophy**: Minimalist system with flexible sessions and no gamification. Focus on essential work.
+**Philosophy**: Terminal as the command center for a complete life operating system—not just a focus timer, but an integrated system that optimizes your biology, environment, and behavior.
 
 ### Quick Start
 
 ```bash
-focus              # Start session (prompts for duration)
+gm                 # Morning ritual - circadian check + ONE essential task
 focus 90           # 90-min deep work block (recommended)
-gm                 # Morning ritual - set ONE essential task
-eod                # End of day review
+prime              # Pre-focus visual priming (60 sec)
+energy 4           # Log alertness level (1-5)
+nsdr               # Non-Sleep Deep Rest protocol after intense work
+fshutdown          # End-of-day shutdown ritual
 fstats             # View your stats
-focus review       # Weekly 80/20 Essentialism review
 ```
 
-### Commands
+### Core Commands
 
 | Command | Description |
 |---------|-------------|
@@ -55,26 +56,85 @@ focus review       # Weekly 80/20 Essentialism review
 | `focus stats week` | Weekly summary |
 | `focus review` | Weekly 80/20 review |
 | `focus break` | Take a break |
-| `gm` | Morning ritual |
+| `gm` | Morning ritual (circadian checks + intention) |
 | `eod` | End of day review |
+
+### Neuroscience Commands (Huberman Lab Protocols)
+
+| Command | Description |
+|---------|-------------|
+| `prime` | Pre-focus visual priming (60 sec) - engage attention circuits |
+| `primeq` | Quick visual focus (30 sec) |
+| `nsdr` | Non-Sleep Deep Rest protocol for recovery |
+| `energy 4` | Log alertness level (1-5) with factors |
+
+### Behavioral Architecture Commands
+
+| Command | Description |
+|---------|-------------|
+| `fplan` | Weekly time architecture (Sunday ritual) |
+| `fdrift` | Between-session drift check |
+| `fshutdown` | Shutdown complete ritual (cognitive closure) |
+| `fjournal` | Identity reflection (weekly) |
+| `finsights` | Behavioral analytics dashboard |
+| `fdeep` | Deep commitment session (must type phrase to stop) |
+
+### Commitment Levels
+
+```bash
+focus start 90 --commitment soft      # Press 's' to stop (easy)
+focus start 90 --commitment standard  # Must explain why stopping (default)
+focus start 90 --commitment deep      # Must type "I choose to break my commitment"
+```
 
 ### Features
 
-- **Flexible sessions**: 90 min (deep work), 60 min (standard), 30 min (lighter tasks)
-- **Essentialism prompts**: "Is this essential?" before each session
-- **Implementation Intentions**: "When X, I will Y" for handling distractions
-- **Morning ritual**: Set your ONE essential task for the day
-- **Weekly 80/20 review**: Identify what produces real results
-- **Clean statistics**: No gamification, just honest tracking
+**Neuroscience Foundation**
+- Pre-focus visual priming (60 sec) - faster focus onset
+- Circadian optimization - morning sunlight, caffeine timing
+- Ultradian rhythm enforcement - 20 min rest after 90 min sessions
+- Energy tracking with peak hours analysis
+- NSDR (Non-Sleep Deep Rest) for recovery
+
+**Environment Automation**
+- macOS Focus Mode integration (Do Not Disturb)
+- Auto-quit distracting apps (Slack, Discord, Messages)
+- Voice notifications with spoken announcements
+
+**Behavioral Architecture**
+- Commitment escalation (soft → standard → deep)
+- Daily themes (Building, Thinking, Collaboration, etc.)
+- Shutdown ritual with verbal cue
+- Drift detection between sessions
+- Identity journaling and progression tracking
 
 ### Expert Alignment
 
 | Expert | Principle | Implementation |
 |--------|-----------|----------------|
-| Cal Newport | 50-90 min deep work blocks | Flexible duration, 90 min recommended |
+| Andrew Huberman | Ultradian rhythms (90 min) | Enforce rest after 90-min blocks |
+| Andrew Huberman | Morning sunlight | Circadian prompts in `gm` |
+| Andrew Huberman | NSDR for recovery | `nsdr` command |
+| Andrew Huberman | Visual focus priming | `prime` command |
+| Cal Newport | Fixed-schedule productivity | Weekly plan sets shutdown times |
+| Cal Newport | Shutdown complete ritual | `fshutdown` with verbal cue |
+| Cal Newport | Deep work blocks | 90-min default, theme days |
 | Nir Eyal | Implementation intentions | "When X, I will Y" prompts |
-| McKeown | Essentialism | "Is this essential?" checks |
-| Tim Ferriss | 80/20 analysis | Weekly review command |
+| Nir Eyal | Environment design | macOS Focus Mode, app blocking |
+| James Clear | Identity > outcomes | `fjournal`, daily identity statements |
+| James Clear | Habit stacking | Morning ritual anchoring |
+| BJ Fogg | Tiny habits | Pre-focus priming (60 sec) |
+| Greg McKeown | Essentialism | 80/20 review, weekly questions |
+
+### macOS Shortcuts Setup
+
+For full environment automation, create these Shortcuts:
+
+1. **Enable Deep Work Focus**
+   - Add: Set Focus → Do Not Disturb → On
+
+2. **Disable Deep Work Focus**
+   - Add: Set Focus → Off
 
 ## Shell Aliases
 
@@ -109,4 +169,4 @@ Focus Mode requires:
 pip install rich click pyyaml
 ```
 
-Built with behavioral science: Deep Work principles, implementation intentions, Essentialism methodology.
+Built with behavioral science: Huberman Lab neuroscience, Cal Newport's Deep Work, Nir Eyal's Indistractable, James Clear's Atomic Habits, and Greg McKeown's Essentialism.

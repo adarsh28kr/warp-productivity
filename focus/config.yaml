@@ -1,35 +1,115 @@
-# Focus Mode v2 Configuration
-# Based on Cal Newport, Nir Eyal, and Essentialism principles
+# Focus Mode v3 Configuration
+# Executive-Level Deep Work Architecture
+# Based on Huberman, Cal Newport, Nir Eyal, and executive coaching methodologies
 
+# =============================================================================
+# Session Settings
+# =============================================================================
 session:
-  # Flexible duration - user chooses each time
-  # Suggestions shown: 90 (deep work), 60 (standard), 30 (lighter tasks)
-  suggested_durations:
-    - 90   # Deep work (recommended by Cal Newport)
-    - 60   # Standard focus block
-    - 30   # Lighter tasks
-
-  short_break: 5                # minutes
-  long_break: 15                # minutes
-  sessions_before_long_break: 2 # After 2 deep sessions
+  suggested_durations: [90, 60, 30]
+  short_break: 5
+  long_break: 15
+  sessions_before_long_break: 2
 
 notifications:
   enabled: true
-  sound: "Glass"                # macOS sound name
-  voice: true                   # Use 'say' command
+  sound: "Glass"
+  voice: true
 
-# No gamification - clean tracking only
+# =============================================================================
+# Neuroscience Settings (Huberman Lab Protocols)
+# =============================================================================
+neuroscience:
+  pre_focus_priming:
+    enabled: true
+    auto_prompt: true           # Ask before each session
+    visual_focus_duration: 60   # seconds
+    include_breathing: true
+
+  circadian:
+    track_wake_time: true
+    prompt_sunlight: true       # Morning sunlight sets cortisol rhythm
+    track_caffeine: true
+    caffeine_delay_minutes: 90  # Optimal delay after waking
+
+  ultradian:
+    enforce_rest_after_90: true  # 90-min cycles need real rest
+    minimum_rest_minutes: 20
+    prompt_nsdr: true
+
+  energy_tracking:
+    enabled: true
+
+# =============================================================================
+# Environment Automation
+# =============================================================================
+environment:
+  macos_focus_mode:
+    enabled: true
+    mode_name: "Do Not Disturb"
+    # Requires Shortcuts: "Enable Deep Work Focus" and "Disable Deep Work Focus"
+
+  blocking:
+    apps:
+      quit_on_start: ["Slack", "Discord", "Messages"]
+    websites:
+      enabled: false  # Requires sudo setup for /etc/hosts modification
+      blocklist_file: "blocklist.txt"
+
+  visual_cues:
+    enable_night_shift: false
+
+# =============================================================================
+# Behavioral Architecture (Clear, Fogg, Newport)
+# =============================================================================
+behavioral:
+  daily_themes:
+    enabled: true
+    themes:
+      Monday:
+        name: "Deep Work - Building"
+        description: "Heads-down coding and creation"
+      Tuesday:
+        name: "Deep Work - Thinking"
+        description: "Architecture, design, complex problems"
+      Wednesday:
+        name: "Collaboration Day"
+        description: "Meetings, pairing, code review"
+      Thursday:
+        name: "Deep Work - Finishing"
+        description: "Complete what was started"
+      Friday:
+        name: "Review & Close"
+        description: "PR reviews, documentation, planning"
+      Saturday:
+        name: "Rest or Light Admin"
+        description: "Catch-up only if needed"
+      Sunday:
+        name: "Weekly Planning"
+        description: "Plan the week, journal, rest"
+
+  commitment:
+    default_level: "standard"  # soft | standard | deep
+
+  shutdown:
+    enabled: true
+    weekday_time: "17:30"
+
+# =============================================================================
+# Tracking & Goals
+# =============================================================================
 tracking:
-  log_sessions: true            # Keep session history
-  log_reflections: true         # Keep morning/evening notes
-  weekly_review_day: "Sunday"   # Day to prompt for 80/20 review
+  log_sessions: true
+  log_reflections: true
+  weekly_review_day: "Sunday"
 
 goals:
-  # Simple focus time tracking
-  daily_focus_minutes: 180      # 3 hours of deep work (realistic target)
+  daily_focus_minutes: 180  # 3 hours of deep work
 
+# =============================================================================
+# Essentialism (Greg McKeown)
+# =============================================================================
 essentialism:
-  # Prompts to help identify essential work
   morning_prompt: "What is the ONE thing that would make everything else easier?"
   session_check: "Is this essential to your goals?"
   weekly_questions:

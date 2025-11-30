@@ -299,13 +299,19 @@ show_tip() {
         "tips|See another tip|tips"
         "alltips|Browse all tips|alltips"
 
-        # Focus Mode (Deep Work)
+        # Focus Mode v3 (Deep Work + Neuroscience)
         "focus|Start a deep work session (flexible duration)|focus"
         "focus 90|90-min deep work session (recommended)|focus 90"
-        "gm|Morning ritual - set your ONE essential task|gm"
+        "gm|Morning ritual - circadian check + ONE essential task|gm"
         "eod|End of day review and reflection|eod"
         "fstats|View your focus statistics|fstats"
         "freview|Weekly 80/20 review (Essentialism)|focus review"
+        "prime|Pre-focus visual priming (60 sec)|prime"
+        "nsdr|Non-Sleep Deep Rest protocol (Huberman)|nsdr"
+        "energy|Log alertness level 1-5|energy 4"
+        "fplan|Weekly time architecture (Sunday ritual)|fplan"
+        "fshutdown|Shutdown complete ritual (Cal Newport)|fshutdown"
+        "finsights|Behavioral analytics dashboard|finsights"
     )
 
     local total=${#tips[@]}
@@ -413,16 +419,32 @@ alltips() {
     echo "  weather   → current weather"
     echo "  cheat     → command cheatsheet"
     echo ""
-    echo "  DEEP WORK (Focus Mode v2)"
+    echo "  DEEP WORK (Focus Mode v3)"
     echo "  ─────────────────────────"
     echo "  focus       → start session (prompts for duration)"
     echo "  focus 90    → 90-min deep work (recommended)"
     echo "  focus 60    → 60-min standard session"
     echo "  focus 30    → 30-min lighter task"
-    echo "  gm          → morning ritual (set ONE essential task)"
+    echo "  gm          → morning ritual (circadian + ONE essential)"
     echo "  eod         → end of day review"
     echo "  fstats      → view focus statistics"
-    echo "  focus review→ weekly 80/20 Essentialism review"
+    echo "  freview     → weekly 80/20 Essentialism review"
+    echo ""
+    echo "  NEUROSCIENCE (Huberman Protocols)"
+    echo "  ──────────────────────────────────"
+    echo "  prime       → pre-focus visual priming (60 sec)"
+    echo "  primeq      → quick visual focus (30 sec)"
+    echo "  nsdr        → Non-Sleep Deep Rest protocol"
+    echo "  energy      → log alertness level (1-5)"
+    echo ""
+    echo "  BEHAVIORAL ARCHITECTURE"
+    echo "  ────────────────────────"
+    echo "  fplan       → weekly time architecture (Sunday)"
+    echo "  fdrift      → between-session drift check"
+    echo "  fshutdown   → shutdown complete ritual"
+    echo "  fjournal    → identity reflection (weekly)"
+    echo "  finsights   → behavioral analytics dashboard"
+    echo "  fdeep       → deep commitment session (must type to stop)"
     echo ""
     echo "  Type 'tips' for a random tip"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -443,10 +465,10 @@ setopt HIST_IGNORE_SPACE
 setopt SHARE_HISTORY
 
 # -----------------------------------------------------------------------------
-# Focus Mode v2 Integration (Deep Work System)
+# Focus Mode v3 Integration (Executive-Level Deep Work System)
 # -----------------------------------------------------------------------------
-# Based on Cal Newport, Nir Eyal, and Essentialism principles
-# No gamification - just clean tracking and evidence-based practices
+# Based on Huberman Lab, Cal Newport, Nir Eyal, James Clear, and Essentialism
+# No gamification - evidence-based neuroscience and behavioral architecture
 
 alias focus="python3 ~/.warp/focus/focus.py"
 alias f="focus"
@@ -463,6 +485,26 @@ alias eod="focus eod"
 f90() { focus start 90 "$@"; }   # Deep work (recommended)
 f60() { focus start 60 "$@"; }   # Standard session
 f30() { focus start 30 "$@"; }   # Lighter tasks
+
+# -----------------------------------------------------------------------------
+# Focus Mode v3 - New Commands (Neuroscience + Behavioral Architecture)
+# -----------------------------------------------------------------------------
+
+# Neuroscience layer (Huberman protocols)
+alias prime="focus prime"           # Pre-focus visual priming (60 sec)
+alias primeq="focus prime --quick"  # Quick 30-sec visual focus
+alias nsdr="focus nsdr"             # Non-Sleep Deep Rest protocol
+alias energy="focus energy"         # Log alertness level (1-5)
+
+# Behavioral architecture (Cal Newport, James Clear)
+alias fplan="focus plan"            # Weekly time architecture (Sunday)
+alias fdrift="focus drift"          # Between-session drift check
+alias fshutdown="focus shutdown"    # Shutdown complete ritual
+alias fjournal="focus journal"      # Identity reflection (weekly)
+alias finsights="focus insights"    # Behavioral analytics dashboard
+
+# Deep commitment sessions
+fdeep() { focus start "${1:-90}" --commitment deep "$2"; }  # Must type phrase to stop
 
 # Show startup tip
 show_tip
