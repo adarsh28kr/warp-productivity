@@ -1,0 +1,90 @@
+# Focus Mode Workflows for Warp
+
+---
+name: Start Focus Session
+description: Begin a 20-minute focus session with intention setting
+command: python3 ~/.warp/focus/focus.py start 20 "{{task}}"
+arguments:
+  - name: task
+    description: What are you working on?
+    default_value: "Deep work"
+tags:
+  - focus
+  - productivity
+
+---
+name: Quick Focus 15
+description: Short 15-minute focus burst
+command: python3 ~/.warp/focus/focus.py start 15 "{{task}}"
+arguments:
+  - name: task
+    description: Quick task
+    default_value: "Quick task"
+tags:
+  - focus
+  - quick
+
+---
+name: Deep Work Session
+description: 45-minute deep work session
+command: python3 ~/.warp/focus/focus.py start 45 "{{task}}"
+arguments:
+  - name: task
+    description: Deep work task
+    default_value: "Deep work"
+tags:
+  - focus
+  - deep
+
+---
+name: Morning Ritual
+description: Start your day with intention and planning
+command: python3 ~/.warp/focus/focus.py gm
+tags:
+  - focus
+  - morning
+  - ritual
+
+---
+name: End of Day Review
+description: Reflect on your day and set tomorrow's priority
+command: python3 ~/.warp/focus/focus.py eod
+tags:
+  - focus
+  - evening
+  - reflection
+
+---
+name: Focus Stats Today
+description: View today's focus statistics
+command: python3 ~/.warp/focus/focus.py stats today
+tags:
+  - focus
+  - stats
+
+---
+name: Focus Stats Week
+description: View this week's focus statistics
+command: python3 ~/.warp/focus/focus.py stats week
+tags:
+  - focus
+  - stats
+  - weekly
+
+---
+name: Check Streaks
+description: View your current streak progress
+command: python3 ~/.warp/focus/focus.py streak
+tags:
+  - focus
+  - streak
+  - gamification
+
+---
+name: Take a Break
+description: Start a 5-minute break timer
+command: python3 ~/.warp/focus/focus.py break 5
+tags:
+  - focus
+  - break
+  - rest

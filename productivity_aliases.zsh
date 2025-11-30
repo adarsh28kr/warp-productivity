@@ -298,6 +298,15 @@ show_tip() {
         "reload|Reload shell config|reload"
         "tips|See another tip|tips"
         "alltips|Browse all tips|alltips"
+
+        # Focus Mode
+        "focus|Start a 20-min focus session|focus"
+        "gm|Morning ritual - set daily intention|gm"
+        "eod|End of day review and reflection|eod"
+        "fstats|View your focus statistics|fstats"
+        "fstreak|Check your streak progress|fstreak"
+        "f20|Quick 20-minute focus session|f20 \"task name\""
+        "fdeep|Deep 45-minute focus session|fdeep \"deep work\""
     )
 
     local total=${#tips[@]}
@@ -422,6 +431,28 @@ export SAVEHIST=50000
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
 setopt SHARE_HISTORY
+
+# -----------------------------------------------------------------------------
+# Focus Mode Integration
+# -----------------------------------------------------------------------------
+# Focus CLI - Evidence-based productivity system
+alias focus="python3 ~/.warp/focus/focus.py"
+alias f="focus"
+alias fs="focus start"
+alias fst="focus status"
+alias fb="focus break"
+alias fstats="focus stats"
+alias fstreak="focus streak"
+
+# Morning and evening rituals
+alias gm="focus gm"
+alias eod="focus eod"
+
+# Quick session shortcuts
+f20() { focus start 20 "$@"; }
+f15() { focus start 15 "$@"; }
+f30() { focus start 30 "$@"; }
+fdeep() { focus start 45 "$@"; }
 
 # Show startup tip
 show_tip

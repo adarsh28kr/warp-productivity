@@ -1,0 +1,28 @@
+# Focus Mode Configuration
+session:
+  default_duration: 20          # minutes (matches your 20-30 min natural rhythm)
+  short_break: 5                # minutes
+  long_break: 15                # minutes
+  sessions_before_long_break: 4
+
+notifications:
+  enabled: true
+  sound: "Glass"                # macOS sound name
+  voice: true                   # Use 'say' command
+
+gamification:
+  base_xp: 50                   # XP for completing a session
+  goal_bonus: 15                # Bonus for achieving session goal
+  no_distraction_bonus: 20      # Bonus for no distractions
+  first_session_bonus: 25       # Bonus for first session of day
+  streak_multiplier: 0.1        # 10% bonus per streak day (caps at 2x)
+  critical_hit_chance: 0.10     # 10% chance for 2x XP
+
+streaks:
+  sessions_per_day: 3           # Sessions needed for daily streak
+  freeze_earn_days: 7           # Days to earn a freeze
+  weekend_pause: false          # Pause streaks on weekends
+
+goals:
+  daily_sessions: 4             # Default daily goal
+  daily_focus_minutes: 80       # Default daily focus time goal
