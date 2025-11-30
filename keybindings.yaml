@@ -1,0 +1,49 @@
+# Warp Custom Keybindings
+# Reference: https://docs.warp.dev/features/keyboard-shortcuts
+
+# Note: These are suggested keybindings. Configure them in Warp Settings > Keyboard Shortcuts
+
+keybindings:
+  # Navigation
+  - action: "new_tab"
+    keys: "cmd+t"
+  - action: "close_tab"
+    keys: "cmd+w"
+  - action: "next_tab"
+    keys: "cmd+shift+]"
+  - action: "previous_tab"
+    keys: "cmd+shift+["
+
+  # Splits
+  - action: "split_vertical"
+    keys: "cmd+d"
+  - action: "split_horizontal"
+    keys: "cmd+shift+d"
+  - action: "navigate_split_left"
+    keys: "cmd+opt+left"
+  - action: "navigate_split_right"
+    keys: "cmd+opt+right"
+  - action: "navigate_split_up"
+    keys: "cmd+opt+up"
+  - action: "navigate_split_down"
+    keys: "cmd+opt+down"
+
+  # Warp Features
+  - action: "command_palette"
+    keys: "cmd+p"
+  - action: "workflow_launcher"
+    keys: "cmd+shift+r"
+  - action: "ai_command"
+    keys: "ctrl+`"
+
+  # Block Navigation
+  - action: "select_block"
+    keys: "cmd+shift+up"
+  - action: "copy_block"
+    keys: "cmd+shift+c"
+
+  # Editor
+  - action: "clear_terminal"
+    keys: "cmd+k"
+  - action: "search"
+    keys: "cmd+f"

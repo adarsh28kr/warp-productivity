@@ -1,0 +1,34 @@
+# Focus Mode Theme for Warp
+# Ultra-minimal, distraction-free dark theme
+# Perfect for deep work sessions
+
+name: "Focus Mode"
+author: "Custom"
+
+background: "#000000"
+foreground: "#c9d1d9"
+cursor: "#39d353"
+selection_background: "#1f3a5f"
+selection_foreground: "#ffffff"
+
+terminal_colors:
+  normal:
+    black: "#21262d"
+    red: "#f85149"
+    green: "#39d353"
+    yellow: "#e5a835"
+    blue: "#2f81f7"
+    magenta: "#a371f7"
+    cyan: "#56d4dd"
+    white: "#8b949e"
+  bright:
+    black: "#30363d"
+    red: "#ff7a7a"
+    green: "#56d364"
+    yellow: "#f0c644"
+    blue: "#58a6ff"
+    magenta: "#bc8cff"
+    cyan: "#76e4f7"
+    white: "#f0f6fc"
+
+accent: "#39d353"

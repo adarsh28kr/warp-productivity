@@ -1,0 +1,130 @@
+# Development Workflows for Warp
+
+---
+name: New Python Project
+description: Initialize a new Python project with venv
+command: |
+  mkdir -p {{project_name}} && cd {{project_name}} && \
+  python3 -m venv venv && \
+  source venv/bin/activate && \
+  echo "venv/" > .gitignore && \
+  echo "__pycache__/" >> .gitignore && \
+  echo "*.pyc" >> .gitignore && \
+  git init && \
+  echo "# {{project_name}}" > README.md && \
+  echo "Python project initialized!"
+arguments:
+  - name: project_name
+    description: Name of the project
+    default_value: my-project
+tags:
+  - python
+  - project
+
+---
+name: New Node Project
+description: Initialize a new Node.js project
+command: |
+  mkdir -p {{project_name}} && cd {{project_name}} && \
+  npm init -y && \
+  echo "node_modules/" > .gitignore && \
+  git init && \
+  echo "Node project initialized!"
+arguments:
+  - name: project_name
+    description: Name of the project
+    default_value: my-node-app
+tags:
+  - node
+  - project
+
+---
+name: Run Dev Server
+description: Start development server (auto-detects package manager)
+command: |
+  if [ -f "package-lock.json" ]; then npm run dev; \
+  elif [ -f "yarn.lock" ]; then yarn dev; \
+  elif [ -f "pnpm-lock.yaml" ]; then pnpm dev; \
+  else echo "No lock file found"; fi
+tags:
+  - node
+  - dev
+
+---
+name: Docker Build & Run
+description: Build and run a Docker container
+command: docker build -t {{image_name}} . && docker run -p {{port}}:{{port}} {{image_name}}
+arguments:
+  - name: image_name
+    description: Name for the Docker image
+    default_value: my-app
+  - name: port
+    description: Port to expose
+    default_value: "3000"
+tags:
+  - docker
+  - container
+
+---
+name: Docker Cleanup
+description: Remove all stopped containers and unused images
+command: docker container prune -f && docker image prune -f && docker volume prune -f
+tags:
+  - docker
+  - cleanup
+
+---
+name: Find Large Files
+description: Find files larger than specified size
+command: find . -type f -size +{{size}} -exec ls -lh {} \; | sort -k5 -h -r | head -20
+arguments:
+  - name: size
+    description: Minimum file size (e.g., 100M, 1G)
+    default_value: 100M
+tags:
+  - files
+  - cleanup
+
+---
+name: Kill Process on Port
+description: Kill whatever is running on a specific port
+command: lsof -ti:{{port}} | xargs kill -9 && echo "Killed process on port {{port}}"
+arguments:
+  - name: port
+    description: Port number
+    default_value: "3000"
+tags:
+  - process
+  - network
+
+---
+name: Search and Replace in Files
+description: Find and replace text across files
+command: |
+  grep -rl "{{search}}" {{path}} | xargs sed -i '' 's/{{search}}/{{replace}}/g'
+arguments:
+  - name: search
+    description: Text to search for
+  - name: replace
+    description: Text to replace with
+  - name: path
+    description: Path to search in
+    default_value: "."
+tags:
+  - text
+  - refactor
+
+---
+name: Generate SSH Key
+description: Generate a new SSH key
+command: ssh-keygen -t ed25519 -C "{{email}}" -f ~/.ssh/{{keyname}}
+arguments:
+  - name: email
+    description: Your email
+    default_value: you@example.com
+  - name: keyname
+    description: Name for the key file
+    default_value: id_ed25519
+tags:
+  - ssh
+  - security

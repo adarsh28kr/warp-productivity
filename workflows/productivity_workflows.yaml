@@ -1,0 +1,126 @@
+# Productivity Workflows for Warp
+
+---
+name: Quick Note
+description: Add a timestamped note to your notes file
+command: |
+  mkdir -p ~/.notes && \
+  echo "$(date '+%Y-%m-%d %H:%M'): {{note}}" >> ~/.notes/quick_notes.md && \
+  echo "Note saved!"
+arguments:
+  - name: note
+    description: Your note
+tags:
+  - notes
+  - productivity
+
+---
+name: View Notes
+description: View your recent notes
+command: cat ~/.notes/quick_notes.md 2>/dev/null | tail -20 || echo "No notes yet"
+tags:
+  - notes
+  - productivity
+
+---
+name: Pomodoro Timer
+description: Start a pomodoro timer (default 25 min)
+command: |
+  echo "Starting {{minutes}} minute timer..." && \
+  sleep $(({{minutes}} * 60)) && \
+  osascript -e 'display notification "Time is up! Take a break." with title "Pomodoro"' && \
+  say "Pomodoro complete"
+arguments:
+  - name: minutes
+    description: Timer duration in minutes
+    default_value: "25"
+tags:
+  - timer
+  - productivity
+
+---
+name: System Info
+description: Quick system overview
+command: |
+  echo "=== System Info ===" && \
+  echo "Hostname: $(hostname)" && \
+  echo "macOS: $(sw_vers -productVersion)" && \
+  echo "Uptime: $(uptime | sed 's/.*up //' | sed 's/, [0-9]* user.*//')" && \
+  echo "" && \
+  echo "=== Memory ===" && \
+  top -l 1 | grep PhysMem && \
+  echo "" && \
+  echo "=== Disk ===" && \
+  df -h / | tail -1
+tags:
+  - system
+  - info
+
+---
+name: Weather
+description: Get current weather
+command: curl -s "wttr.in/{{location}}?format=3"
+arguments:
+  - name: location
+    description: City name
+    default_value: ""
+tags:
+  - weather
+  - info
+
+---
+name: Quick HTTP Server
+description: Start a simple HTTP server
+command: |
+  echo "Serving current directory on http://localhost:{{port}}" && \
+  python3 -m http.server {{port}}
+arguments:
+  - name: port
+    description: Port number
+    default_value: "8000"
+tags:
+  - server
+  - http
+
+---
+name: Generate Password
+description: Generate a secure random password
+command: |
+  openssl rand -base64 {{length}} | tr -d '\n' | head -c {{length}} && echo ""
+arguments:
+  - name: length
+    description: Password length
+    default_value: "24"
+tags:
+  - security
+  - password
+
+---
+name: Check My IP
+description: Show public and local IP addresses
+command: |
+  echo "Public IP: $(curl -s ifconfig.me)" && \
+  echo "Local IP:  $(ipconfig getifaddr en0 2>/dev/null || echo 'Not connected')"
+tags:
+  - network
+  - info
+
+---
+name: Open Project in VS Code
+description: Open current directory in VS Code
+command: code .
+tags:
+  - editor
+  - vscode
+
+---
+name: Git Summary
+description: Show a summary of git activity in current repo
+command: |
+  echo "=== Branch ===" && git branch --show-current && \
+  echo "" && echo "=== Status ===" && git status -s && \
+  echo "" && echo "=== Recent Commits ===" && git log --oneline -5 && \
+  echo "" && echo "=== Unpushed ===" && git log @{u}.. --oneline 2>/dev/null || echo "No upstream set"
+tags:
+  - git
+  - summary

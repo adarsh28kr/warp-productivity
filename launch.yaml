@@ -1,0 +1,27 @@
+# Warp Launch Configuration
+# Custom startup configurations and session settings
+
+# Default session settings
+default_session:
+  working_directory: "~"
+  shell: "/bin/zsh"
+
+# Quick launch profiles
+profiles:
+  - name: "Development"
+    working_directory: "~/Projects"
+    commands:
+      - "clear"
+
+  - name: "Desktop Quick"
+    working_directory: "~/Desktop"
+
+  - name: "Downloads Manager"
+    working_directory: "~/Downloads"
+    commands:
+      - "ls -lahtr | tail -20"
+
+# Startup behavior
+startup:
+  show_welcome: false
+  restore_sessions: true

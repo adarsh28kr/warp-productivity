@@ -1,0 +1,35 @@
+# Productivity Dark Theme for Warp
+# Designed for long coding sessions with reduced eye strain
+# High contrast for readability, subtle accents for focus
+
+name: "Productivity Dark"
+author: "Custom"
+
+background: "#0d1117"
+foreground: "#e6edf3"
+cursor: "#58a6ff"
+selection_background: "#264f78"
+selection_foreground: "#ffffff"
+
+terminal_colors:
+  normal:
+    black: "#484f58"
+    red: "#ff7b72"
+    green: "#7ee787"
+    yellow: "#d29922"
+    blue: "#58a6ff"
+    magenta: "#bc8cff"
+    cyan: "#76e3ea"
+    white: "#b1bac4"
+  bright:
+    black: "#6e7681"
+    red: "#ffa198"
+    green: "#a5f0b0"
+    yellow: "#e3b341"
+    blue: "#79c0ff"
+    magenta: "#d2a8ff"
+    cyan: "#a5f3f9"
+    white: "#f0f6fc"
+
+# Accent colors for UI elements
+accent: "#58a6ff"

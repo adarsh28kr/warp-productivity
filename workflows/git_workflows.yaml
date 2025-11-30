@@ -1,0 +1,74 @@
+# Git Workflows for Warp
+# These can be triggered via Warp's workflow feature
+
+---
+name: New Feature Branch
+description: Create a new feature branch from main
+command: git checkout main && git pull && git checkout -b feature/{{branch_name}}
+arguments:
+  - name: branch_name
+    description: Name for the feature branch
+    default_value: my-feature
+tags:
+  - git
+  - branch
+
+---
+name: Quick Commit & Push
+description: Stage all, commit with message, and push
+command: git add -A && git commit -m "{{message}}" && git push
+arguments:
+  - name: message
+    description: Commit message
+    default_value: Update
+tags:
+  - git
+  - commit
+
+---
+name: Undo Last Commit (Keep Changes)
+description: Soft reset the last commit, keeping all changes
+command: git reset --soft HEAD~1
+tags:
+  - git
+  - undo
+
+---
+name: Sync Fork with Upstream
+description: Fetch and merge upstream changes into current branch
+command: git fetch upstream && git merge upstream/{{branch}}
+arguments:
+  - name: branch
+    description: Branch to sync
+    default_value: main
+tags:
+  - git
+  - fork
+
+---
+name: Interactive Rebase
+description: Rebase last N commits
+command: git rebase -i HEAD~{{count}}
+arguments:
+  - name: count
+    description: Number of commits to rebase
+    default_value: "3"
+tags:
+  - git
+  - rebase
+
+---
+name: Clean Merged Branches
+description: Delete all local branches that have been merged
+command: git branch --merged | grep -v "\*\|main\|master" | xargs -n 1 git branch -d
+tags:
+  - git
+  - cleanup
+
+---
+name: Show Git Stats
+description: Show contribution stats for the repo
+command: git shortlog -sn --all
+tags:
+  - git
+  - stats
